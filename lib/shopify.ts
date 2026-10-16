@@ -153,15 +153,42 @@ export async function getSubscriptionStatus(
   }
 }
 
-export function verifyShopifyWebhook(
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) {
+    return false;
+  }
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i += 1) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) {
+    binary += String.fromCharCode(bytes[i] ?? 0);
+  }
+  return btoa(binary);
+}
+
+export async function verifyShopifyWebhook(
   rawBody: string,
   hmacHeader: string
-): boolean {
-  const crypto = require("crypto");
+): Promise<boolean> {
   const webhookSecret = process.env.SHOPIFY_WEBHOOK_SECRET || "";
-  const hash = crypto
-    .createHmac("sha256", webhookSecret)
-    .update(rawBody, "utf8")
-    .digest("base64");
-  return hash === hmacHeader;
+  if (!webhookSecret || !hmacHeader) {
+    return false;
+  }
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(webhookSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+  return timingSafeEqual(bytesToBase64(new Uint8Array(signature)), hmacHeader);
 }
