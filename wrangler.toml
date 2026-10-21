@@ -1,0 +1,17 @@
+name = "oxford-reserve"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+pages_build_output_dir = ".vercel/output/static"
+
+[[kv_namespaces]]
+binding = "RESERVATIONS"
+id = "YOUR_KV_NAMESPACE_ID"
+
+[[kv_namespaces]]
+binding = "SUBSCRIPTIONS"
+id = "YOUR_SUBSCRIPTIONS_KV_ID"
+
+[vars]
+NEXT_PUBLIC_CLERK_SIGN_IN_URL = "/sign-in"
+NEXT_PUBLIC_CLERK_SIGN_UP_URL = "/sign-up"
