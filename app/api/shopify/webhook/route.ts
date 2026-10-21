@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   const hmac = request.headers.get("x-shopify-hmac-sha256") ?? "";
   const topic = request.headers.get("x-shopify-topic") ?? "";
 
-  if (!verifyShopifyWebhook(rawBody, hmac)) {
+  if (!(await verifyShopifyWebhook(rawBody, hmac))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
